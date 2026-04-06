@@ -81,7 +81,7 @@ def cloudinary_upload(file_obj, folder="zedcanvas2"):
 # ════════════════════════════════════════
 # DATABASE
 # ════════════════════════════════════════
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
+DATABASE_URL = os.environ.get("postgresql://postgres:iOdihWwivWguzdYqWTQuaqvuQmpjRfnz@maglev.proxy.rlwy.net:12605/railway", "")
 
 @contextmanager
 def get_db():
