@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>{% block title %}ZedCanvas{% endblock %}</title>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="ZedCanvas"/>
+  <link rel="manifest" href="/static/manifest.json"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#f8f8f8;--surf:#fff;--bdr:#e8e8e8;--txt:#0a0a0a;--mute:#888;--sub:#f2f2f2;--inv:#0a0a0a;--inv-t:#f8f8f8;}
+    [data-theme=dark]{--bg:#0a0a0a;--surf:#151515;--bdr:#252525;--txt:#f0f0f0;--mute:#606060;--sub:#1e1e1e;--inv:#f0f0f0;--inv-t:#0a0a0a;}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:72px;transition:background .2s,color .2s;}
+    a{color:inherit;text-decoration:none;}
+    img{display:block;max-width:100%;}
+
+    /* ── Top Nav ── */
+    .topnav{position:fixed;top:0;left:0;right:0;z-index:300;height:52px;background:var(--bg);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;backdrop-filter:blur(16px);}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:1.55rem;letter-spacing:.06em;color:var(--txt);}
+    .nav-right{display:flex;align-items:center;gap:.1rem;}
+    .icon-btn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--txt);position:relative;transition:background .15s;}
+    .icon-btn:hover{background:var(--sub);}
+    .notif-pip{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#e53e3e;border:2px solid var(--bg);}
+    .nav-av{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr);}
+    .nav-av-ph{width:32px;height:32px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;}
+
+    /* ── Dropdown ── */
+    .dd-wrap{position:relative;}
+    .dd{position:absolute;top:calc(100% + 6px);right:0;min-width:220px;background:var(--surf);border:1px solid var(--bdr);border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.12);overflow:hidden;display:none;z-index:400;animation:ddIn .15s ease;}
+    @keyframes ddIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    .dd.open{display:block;}
+    .dd-item{display:flex;align-items:center;gap:.75rem;padding:.8rem 1rem;font-size:.88rem;font-weight:500;color:var(--txt);transition:background .12s;border:none;background:none;width:100%;cursor:pointer;text-align:left;}
+    .dd-item:hover{background:var(--sub);}
+    .dd-item.red{color:#e53e3e;}
+    .dd-item.red:hover{background:#fff5f5;}
+    .dd-icon{width:32px;height:32px;border-radius:9px;background:var(--sub);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .dd-div{height:1px;background:var(--bdr);margin:.2rem 0;}
+    .dd-lbl{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);padding:.5rem 1rem .2rem;}
+
+    /* ── Bottom Nav ── */
+    .botnav{position:fixed;bottom:0;left:0;right:0;z-index:300;height:60px;background:var(--bg);border-top:1px solid var(--bdr);display:flex;align-items:center;}
+    .bn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--mute);font-size:.56rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;height:100%;position:relative;transition:color .15s;}
+    .bn.act{color:var(--txt);}
+    .bn.act .bn-pip{display:block;}
+    .bn-pip{display:none;position:absolute;top:0;left:50%;transform:translateX(-50%);width:18px;height:3px;background:var(--txt);border-radius:0 0 3px 3px;}
+    .bn-post{width:46px;height:46px;border-radius:14px;background:var(--inv);display:flex;align-items:center;justify-content:center;}
+
+    /* ── Main ── */
+    main{max-width:600px;margin:0 auto;padding:calc(52px + 1rem) 1rem 1rem;}
+
+    /* ── Flash ── */
+    .flashes{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:500;width:92%;max-width:420px;}
+    .flash{padding:.7rem 1rem;border-radius:10px;font-size:.86rem;font-weight:500;margin-bottom:.4rem;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.1);animation:fl .3s ease;}
+    @keyframes fl{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    .flash.success{background:var(--inv);color:var(--inv-t);}
+    .flash.error{background:#fee2e2;color:#b91c1c;}
+
+    /* ── Cards ── */
+    .card{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:1rem;}
+
+    /* ── Post ── */
+    .ph{display:flex;align-items:center;gap:.7rem;padding:.8rem 1rem;}
+    .pav{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+    .pav-ph{width:38px;height:38px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;flex-shrink:0;}
+    .pinfo{flex:1;}
+    .pun{font-weight:600;font-size:.88rem;color:var(--txt);}
+    .pun:hover{text-decoration:underline;}
+    .pt{font-size:.72rem;color:var(--mute);margin-top:1px;}
+    .pimg{width:100%;aspect-ratio:1/1;object-fit:cover;}
+    .pact{display:flex;align-items:center;gap:.05rem;padding:.35rem .6rem;}
+    .abt{background:none;border:none;cursor:pointer;padding:.4rem .5rem;border-radius:8px;display:flex;align-items:center;gap:.3rem;color:var(--txt);font-size:.8rem;font-weight:600;transition:background .12s;}
+    .abt:hover{background:var(--sub);}
+    .pcap{padding:0 1rem .75rem;font-size:.88rem;line-height:1.6;}
+    .pcap strong{margin-right:.35rem;}
+
+    /* ── Comments ── */
+    .csec{padding:0 1rem;border-top:1px solid var(--bdr);}
+    .cmt{display:flex;gap:.55rem;padding:.55rem 0;border-bottom:1px solid var(--sub);}
+    .cmt:last-child{border-bottom:none;}
+    .cav{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+    .cav-ph{width:26px;height:26px;border-radius:50%;background:var(--sub);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0;}
+    .cbody{flex:1;}
+    .cun{font-weight:600;font-size:.8rem;}
+    .ctxt{font-size:.82rem;color:var(--mute);}
+    .cform{display:flex;gap:.45rem;padding:.7rem 1rem;border-top:1px solid var(--bdr);}
+    .cinp{flex:1;border:1px solid var(--bdr);border-radius:20px;padding:.45rem .9rem;font-family:'DM Sans',sans-serif;font-size:.85rem;background:var(--sub);color:var(--txt);outline:none;transition:border-color .2s;}
+    .cinp:focus{border-color:var(--txt);background:var(--surf);}
+    .csub{background:var(--inv);color:var(--inv-t);border:none;border-radius:20px;padding:.45rem .9rem;font-size:.8rem;font-weight:600;cursor:pointer;}
+
+    /* ── Buttons ── */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem 1.3rem;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:600;cursor:pointer;border:none;transition:all .18s;}
+    .btn-k{background:var(--inv);color:var(--inv-t);}
+    .btn-k:hover{opacity:.85;}
+    .btn-o{background:transparent;color:var(--txt);border:1.5px solid var(--txt);}
+    .btn-o:hover{background:var(--txt);color:var(--bg);}
+    .btn-g{background:var(--sub);color:var(--mute);border:1px solid var(--bdr);}
+    .btn-sm{padding:.3rem .85rem;font-size:.78rem;border-radius:20px;}
+    .btn-f{width:100%;display:flex;padding:.82rem;}
+
+    /* ── Forms ── */
+    .fg{margin-bottom:.9rem;}
+    .fl{display:block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:.35rem;}
+    .fi{width:100%;padding:.78rem 1rem;border:1.5px solid var(--bdr);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.92rem;background:var(--surf);color:var(--txt);transition:border-color .2s;-webkit-appearance:none;}
+    .fi:focus{outline:none;border-color:var(--txt);}
+    textarea.fi{resize:vertical;min-height:80px;}
+
+    /* ── Avatars ── */
+    .av{border-radius:50%;object-fit:cover;}
+    .av-ph{border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-weight:700;}
+
+    /* ── Misc ── */
+    .badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:var(--inv);color:var(--inv-t);border-radius:50%;font-size:.6rem;margin-left:2px;vertical-align:middle;flex-shrink:0;}
+    .urow{display:flex;align-items:center;gap:.7rem;padding:.8rem 0;border-bottom:1px solid var(--sub);}
+    .urow:last-child{border-bottom:none;}
+    .uinfo{flex:1;}
+    .unm{font-weight:600;font-size:.88rem;}
+    .usub{font-size:.75rem;color:var(--mute);}
+    .empty{text-align:center;padding:4rem 1rem;color:var(--mute);}
+    .empty-ico{font-size:3rem;margin-bottom:.6rem;}
+    .empty h3{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--txt);margin-bottom:.4rem;}
+
+    /* ── SVG icons ── */
+    .ico{display:inline-block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;flex-shrink:0;}
+    .ico-s{width:18px;height:18px;}
+  </style>
+  {% block xstyle %}{% endblock %}
+</head>
+<body>
+  <script>
+    (function(){
+      var t=localStorage.getItem('zc-theme')||'light';
+      document.documentElement.setAttribute('data-theme',t);
+    })();
+  </script>
+
+  <!-- Top Nav -->
+  <nav class="topnav">
+    <a href="{{ url_for('feed') }}" class="logo">ZedCanvas</a>
+    <div class="nav-right">
+      <a href="{{ url_for('notifications') }}" class="icon-btn">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        {% if notif_count and notif_count > 0 %}<span class="notif-pip"></span>{% endif %}
+      </a>
+      <div class="dd-wrap">
+        <button class="icon-btn" onclick="toggleDD()">
+          <svg class="ico" viewBox="0 0 24 24">
+            <circle cx="12" cy="5"  r="1.2" fill="currentColor" stroke="none"/>
+            <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+            <circle cx="12" cy="19" r="1.2" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+        <div class="dd" id="main-dd">
+          <a href="{{ url_for('profile', username=me.username) }}" class="dd-item">
+            <div class="dd-icon">
+              {% if me and me.avatar %}
+                <img src="{{ me.avatar }}" style="width:32px;height:32px;border-radius:9px;object-fit:cover;" alt=""/>
+              {% else %}
+                <span style="font-weight:700;font-size:.82rem;">{{ me.username[0].upper() if me else '?' }}</span>
+              {% endif %}
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:.85rem;">@{{ me.username if me else '' }}</div>
+              <div style="font-size:.7rem;color:var(--mute);">View profile</div>
+            </div>
+          </a>
+          <div class="dd-div"></div>
+          <div class="dd-lbl">Pages</div>
+          <a href="{{ url_for('discover') }}" class="dd-item">
+            <div class="dd-icon"><svg class="ico ico-s" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
+            Discover
+          </a>
+          <a href="{{ url_for('challenges') }}" class="dd-item">
+            <div class="dd-icon"><svg class="ico ico-s" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+            Challenges 🎭
+          </a>
+          <a href="{{ url_for('marketplace') }}" class="dd-item">
+            <div class="dd-icon"><svg class="ico ico-s" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+            Marketplace 🛒
+          </a>
+          <a href="{{ url_for('create_poll') }}" class="dd-item">
+            <div class="dd-icon"><svg class="ico ico-s" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+            Create Poll 🗳️
+          </a>
+          <a href="{{ url_for('bookmarks') }}" class="dd-item">
+            <div class="dd-icon"><svg class="ico ico-s" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>
+            Saved 🔖
+          </a>
+          <a href="{{ url_for('analytics') }}" class="dd-item">
+            <div class="dd-icon"><svg class="ico ico-s" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+            Analytics 📊
+          </a>
+          <div class="dd-div"></div>
+          <div class="dd-lbl">Account</div>
+          <a href="{{ url_for('settings') }}" class="dd-item">
+            <div class="dd-icon"><svg class="ico ico-s" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            Edit Profile
+          </a>
+          <button class="dd-item" onclick="toggleTheme()">
+            <div class="dd-icon">
+              <svg class="ico ico-s" id="theme-ico" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+            <span id="theme-lbl">Dark Mode</span>
+          </button>
+          <div class="dd-div"></div>
+          <a href="{{ url_for('logout') }}" class="dd-item red">
+            <div class="dd-icon" style="background:#fff5f5;">
+              <svg class="ico ico-s" viewBox="0 0 24 24" stroke="#e53e3e"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </div>
+            Log Out
+          </a>
+        </div>
+      </div>
+      <a href="{{ url_for('profile', username=me.username) }}" class="icon-btn" style="padding:0;width:38px;height:38px;">
+        {% if me and me.avatar %}
+          <img src="{{ me.avatar }}" class="nav-av" alt=""/>
+        {% else %}
+          <div class="nav-av-ph">{{ me.username[0].upper() if me else '?' }}</div>
+        {% endif %}
+      </a>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for cat, msg in messages %}
+          <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <!-- Bottom Nav -->
+  <nav class="botnav">
+    <a href="{{ url_for('feed') }}" class="bn {{ 'act' if request.endpoint=='feed' }}">
+      <span class="bn-pip"></span>
+      <svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="{{ url_for('search') }}" class="bn {{ 'act' if request.endpoint=='search' }}">
+      <span class="bn-pip"></span>
+      <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Search</span>
+    </a>
+    <a href="{{ url_for('create_post') }}" class="bn {{ 'act' if request.endpoint=='create_post' }}">
+      <div class="bn-post">
+        <svg class="ico" viewBox="0 0 24 24" stroke="var(--inv-t)"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <span>Post</span>
+    </a>
+    <a href="{{ url_for('messages') }}" class="bn {{ 'act' if request.endpoint in ['messages','conversation'] }}">
+      <span class="bn-pip"></span>
+      <svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Messages</span>
+    </a>
+    <a href="{{ url_for('profile', username=me.username) }}" class="bn {{ 'act' if request.endpoint=='profile' }}">
+      <span class="bn-pip"></span>
+      <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script>
+    function applyTheme(t){
+      document.documentElement.setAttribute('data-theme',t);
+      localStorage.setItem('zc-theme',t);
+      var ico=document.getElementById('theme-ico');
+      var lbl=document.getElementById('theme-lbl');
+      if(!ico)return;
+      if(t==='dark'){
+        ico.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+        lbl.textContent='Light Mode';
+      }else{
+        ico.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+        lbl.textContent='Dark Mode';
+      }
+    }
+    applyTheme(localStorage.getItem('zc-theme')||'light');
+    function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');closeDD();}
+    function toggleDD(){document.getElementById('main-dd').classList.toggle('open');}
+    function closeDD(){document.getElementById('main-dd').classList.remove('open');}
+    document.addEventListener('click',function(e){
+      var w=document.querySelector('.dd-wrap');
+      if(w&&!w.contains(e.target))closeDD();
+    });
+    setTimeout(function(){
+      document.querySelectorAll('.flash').forEach(function(el){
+        el.style.transition='opacity .5s';
+        el.style.opacity='0';
+        setTimeout(function(){el.remove();},500);
+      });
+    },3000);
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('/static/sw.js');
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+  </html>
