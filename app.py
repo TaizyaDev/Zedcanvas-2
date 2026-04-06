@@ -39,8 +39,8 @@ app.config.update(
 # ════════════════════════════════════════
 # EMAIL
 # ════════════════════════════════════════
-EMAIL_ADDRESS  = os.environ.get("EMAIL_ADDRESS",  "your@gmail.com")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "your_app_password")
+EMAIL_ADDRESS  = os.environ.get("EMAIL_ADDRESS",  "zedcanvas4all@gmail.com")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "jodehbhwzrozyfuc")
 
 # ════════════════════════════════════════
 # CLOUDINARY
