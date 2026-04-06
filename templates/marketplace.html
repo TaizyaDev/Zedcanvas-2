@@ -1,0 +1,49 @@
+{% extends "base.html" %}{% block title %}Marketplace — ZedCanvas{% endblock %}
+{% block xstyle %}
+<style>
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;}
+.lcard{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--txt);display:block;transition:transform .15s;}
+.lcard:hover{transform:translateY(-2px);}
+.limg{width:100%;aspect-ratio:1;object-fit:cover;}
+.linfo{padding:.65rem .75rem;}
+.lprice{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.03em;}
+.lseller{font-size:.7rem;color:var(--mute);margin-top:.15rem;}
+.pill{display:inline-block;white-space:nowrap;padding:.28rem .75rem;border-radius:20px;font-size:.75rem;font-weight:500;border:1.5px solid var(--bdr);background:var(--surf);color:var(--mute);text-decoration:none;flex-shrink:0;}
+.pill.on{background:var(--inv);color:var(--inv-t);border-color:var(--inv);}
+</style>
+{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;">Marketplace 🛒</div>
+  <a href="{{ url_for('sell_artwork') }}" class="btn btn-k btn-sm">+ Sell</a>
+</div>
+<div style="display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.4rem;scrollbar-width:none;margin-bottom:.5rem;">
+  <a href="{{ url_for('marketplace') }}" class="pill {{ 'on' if not active_cat }}">All</a>
+  {% for c in cats %}<a href="{{ url_for('marketplace', cat=c, sort=sort) }}" class="pill {{ 'on' if active_cat==c }}">{{ c }}</a>{% endfor %}
+</div>
+<div style="display:flex;gap:.4rem;margin-bottom:.75rem;flex-wrap:wrap;">
+  {% for s,l in [('newest','Newest'),('price_low','Price ↑'),('price_high','Price ↓')] %}
+  <a href="{{ url_for('marketplace', cat=active_cat, sort=s) }}" class="pill {{ 'on' if sort==s }}" style="font-size:.72rem;">{{ l }}</a>
+  {% endfor %}
+</div>
+{% if listings %}
+<div class="grid">
+  {% for l in listings %}
+  <a href="{{ url_for('listing_detail', lid=l.id) }}" class="lcard">
+    <div style="position:relative;">
+      {% if l.post.image %}<img src="{{ l.post.image }}" class="limg" alt=""/>
+      {% else %}<div class="limg" style="background:var(--sub);display:flex;align-items:center;justify-content:center;font-size:2rem;">🎨</div>{% endif %}
+      {% if l.status=='sold' %}<span style="position:absolute;top:.4rem;right:.4rem;background:var(--inv);color:var(--inv-t);font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;">SOLD</span>{% endif %}
+    </div>
+    <div class="linfo">
+      <div style="font-weight:600;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ l.title }}</div>
+      <div class="lprice">{{ l.currency }} {{ "%.0f"|format(l.price) }}</div>
+      <div class="lseller">by @{{ l.seller.username if l.seller else 'Unknown' }}</div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><div class="empty-ico">🛒</div><h3>No listings yet</h3><p style="font-size:.85rem;margin:.4rem 0 1.25rem;">Be the first to sell your artwork!</p><a href="{{ url_for('sell_artwork') }}" class="btn btn-k btn-sm">List Artwork</a></div>
+{% endif %}
+{% endblock %}

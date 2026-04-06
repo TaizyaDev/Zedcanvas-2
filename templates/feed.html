@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}Feed — ZedCanvas{% endblock %}
+
+{% block xstyle %}
+<style>
+  /* Stories */
+  .stories{display:flex;gap:.65rem;overflow-x:auto;padding:.75rem 1rem;background:var(--surf);border:1px solid var(--bdr);border-radius:14px;margin-bottom:1rem;scrollbar-width:none;}
+  .stories::-webkit-scrollbar{display:none;}
+  .story-item{display:flex;flex-direction:column;align-items:center;gap:.3rem;flex-shrink:0;text-decoration:none;color:var(--txt);}
+  .story-ring{width:60px;height:60px;border-radius:50%;padding:2.5px;background:var(--inv);}
+  .story-ring.seen{background:var(--bdr);}
+  .story-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;border:2.5px solid var(--bg);}
+  .story-inner img{width:100%;height:100%;object-fit:cover;}
+  .story-inner .ph-s{width:100%;height:100%;background:var(--sub);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;}
+  .story-add{width:60px;height:60px;border-radius:50%;background:var(--sub);border:2px dashed var(--bdr);display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:1.4rem;text-decoration:none;}
+  .story-name{font-size:.6rem;font-weight:600;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;}
+
+  /* Repost label */
+  .repost-lbl{display:flex;align-items:center;gap:.35rem;padding:.45rem 1rem 0;font-size:.74rem;color:var(--mute);font-weight:500;}
+
+  /* Poll */
+  .poll-wrap{padding:0 1rem .75rem;}
+  .poll-opt{margin-bottom:.45rem;}
+  .poll-btn{width:100%;text-align:left;padding:.6rem .8rem;border:1.5px solid var(--bdr);border-radius:9px;background:var(--surf);font-family:'DM Sans',sans-serif;font-size:.86rem;cursor:pointer;color:var(--txt);transition:border-color .15s;}
+  .poll-btn:hover{border-color:var(--txt);}
+  .poll-bar{position:relative;background:var(--sub);border-radius:9px;overflow:hidden;padding:.6rem .8rem;}
+  .poll-fill{position:absolute;left:0;top:0;bottom:0;background:rgba(0,0,0,.07);transition:width .4s;}
+  [data-theme=dark] .poll-fill{background:rgba(255,255,255,.08);}
+  .poll-row{position:relative;display:flex;justify-content:space-between;font-size:.86rem;}
+  .poll-meta{font-size:.73rem;color:var(--mute);margin-top:.3rem;}
+
+  /* Reply thread */
+  .replies{margin-top:.4rem;border-left:2px solid var(--bdr);padding-left:.65rem;}
+  .reply-btn{background:none;border:none;color:var(--mute);font-size:.7rem;font-weight:600;cursor:pointer;padding:0;margin-top:.2rem;}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stories bar -->
+<div class="stories">
+  <a href="{{ url_for('create_story') }}" class="story-item">
+    <div class="story-add">+</div>
+    <span class="story-name">Your Story</span>
+  </a>
+  {% for s in stories %}
+  <a href="{{ url_for('view_story', sid=s.id) }}" class="story-item">
+    <div class="story-ring {{ 'seen' if s.seen }}">
+      <div class="story-inner">
+        {% if s.author.avatar %}<img src="{{ s.author.avatar }}" alt=""/>
+        {% else %}<div class="ph-s">{{ s.author.username[0].upper() if s.author else '?' }}</div>{% endif %}
+      </div>
+    </div>
+    <span class="story-name">{{ s.author.username if s.author else '' }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Posts -->
+{% if posts %}
+  {% for post in posts %}
+  <div class="card">
+    <!-- Repost label -->
+    {% if post.get('repost_of') %}
+    <div class="repost-lbl">
+      <svg class="ico ico-s" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      <a href="{{ url_for('profile', username=post.author.username) }}" style="font-weight:600;color:var(--mute);">@{{ post.author.username }}</a> reposted
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="ph">
+      {% set show_author = post.orig_author if post.get('repost_of') and post.orig_author else post.author %}
+      <a href="{{ url_for('profile', username=show_author.username) if show_author.username else '#' }}">
+        {% if show_author.avatar %}<img src="{{ show_author.avatar }}" class="pav" alt=""/>
+        {% else %}<div class="pav-ph">{{ show_author.username[0].upper() if show_author.username else '?' }}</div>{% endif %}
+      </a>
+      <div class="pinfo">
+        <a href="{{ url_for('profile', username=show_author.username) if show_author.username else '#' }}" class="pun">
+          @{{ show_author.username if show_author.username else 'Unknown' }}
+          {% if show_author.verified %}<span class="badge">★</span>{% endif %}
+        </a>
+        <div class="pt">{{ post.time_ago }}</div>
+      </div>
+      {% if post.get('for_sale') and post.listing_id %}
+      <a href="{{ url_for('listing_detail', lid=post.listing_id) }}"
+         style="font-size:.72rem;font-weight:700;background:var(--inv);color:var(--inv-t);border-radius:20px;padding:.25rem .65rem;">🛒 For Sale</a>
+      {% endif %}
+      {% if post.user_id == me.id %}
+      <form method="POST" action="{{ url_for('delete_post', pid=post.id) }}"
+            onsubmit="return confirm('Delete post?')">
+        <button style="background:none;border:none;color:var(--mute);font-size:.8rem;cursor:pointer;padding:.25rem;">✕</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <!-- Image -->
+    {% if post.image %}<img src="{{ post.image }}" class="pimg" alt=""/>{% endif %}
+
+    <!-- Poll -->
+    {% if post.get('is_poll') and post.get('poll') %}
+    {% set poll = post.poll %}
+    {% set total_v = poll.options | map(attribute='votes') | map('length') | sum %}
+    {% set my_vote = namespace(i=-1) %}
+    {% for o in poll.options %}{% if me.id in o.votes %}{% set my_vote.i = loop.index0 %}{% endif %}{% endfor %}
+    <div class="poll-wrap">
+      {% for opt in poll.options %}
+      <div class="poll-opt">
+        {% if my_vote.i >= 0 %}
+          {% set pct = ((opt.votes|length) / total_v * 100)|round|int if total_v > 0 else 0 %}
+          <div class="poll-bar" style="border:1.5px solid {{ 'var(--txt)' if my_vote.i == loop.index0 else 'var(--bdr)' }};">
+            <div class="poll-fill" style="width:{{ pct }}%;"></div>
+            <div class="poll-row">
+              <span>{{ opt.text }}{% if my_vote.i == loop.index0 %} ✓{% endif %}</span>
+              <span>{{ pct }}%</span>
+            </div>
+          </div>
+        {% else %}
+          <button class="poll-btn" onclick="votePoll('{{ post.id }}', {{ loop.index0 }})">{{ opt.text }}</button>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="poll-meta">{{ total_v }} vote{{ 's' if total_v != 1 }} · {% if poll.expires > now %}Ends {{ poll.expires[:10] }}{% else %}Ended{% endif %}</div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="pact">
+      <!-- Like -->
+      <button class="abt like-btn" data-pid="{{ post.id }}" onclick="toggleLike(this)">
+        <svg class="ico" viewBox="0 0 24 24" style="{{ 'fill:var(--txt);' if post.liked else '' }}">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <span class="lc">{{ post.likes|length }}</span>
+      </button>
+
+      <!-- Comment toggle -->
+      <button class="abt" onclick="toggleComments('{{ post.id }}')">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>{{ post.comments|length }}</span>
+      </button>
+
+      <!-- Repost -->
+      {% if post.user_id != me.id and not post.get('repost_of') %}
+      <button class="abt rp-btn" data-pid="{{ post.id }}" onclick="toggleRepost(this)"
+              style="{{ 'opacity:1;' if post.reposted else 'opacity:.45;' }}">
+        <svg class="ico" viewBox="0 0 24 24"
+             style="{{ 'stroke-width:2.5;' if post.reposted else '' }}">
+          <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+          <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+        <span>{{ post.repost_count }}</span>
+      </button>
+      {% endif %}
+
+      <!-- Bookmark -->
+      <button class="abt bm-btn" data-pid="{{ post.id }}" onclick="toggleBookmark(this)"
+              style="margin-left:auto;">
+        <svg class="ico" viewBox="0 0 24 24"
+             style="{{ 'fill:var(--txt);' if post.bookmarked else '' }}">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Caption -->
+    {% if post.caption and not post.get('is_poll') %}
+    <div class="pcap">
+      <strong>@{{ show_author.username if show_author.username else 'Unknown' }}</strong>
+      {% for word in post.caption.split() %}
+        {%- if word.startswith('@') -%}
+          <a href="{{ url_for('profile', username=word[1:].lower()) }}" style="font-weight:600;">{{ word }}</a>
+        {%- elif word.startswith('#') -%}
+          <a href="{{ url_for('tag_posts', tag=word[1:].lower()) }}" style="font-weight:600;color:var(--mute);">{{ word }}</a>
+        {%- else -%}{{ word }}{%- endif -%}{{ ' ' }}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Comments -->
+    <div id="cmt-{{ post.id }}" style="display:none;">
+      <div class="csec">
+        {% for c in post.comments %}
+        <div class="cmt" id="c-{{ c.id }}">
+          <a href="{{ url_for('profile', username=c.username) }}">
+            {% if c.avatar %}<img src="{{ c.avatar }}" class="cav" alt=""/>
+            {% else %}<div class="cav-ph">{{ c.username[0].upper() }}</div>{% endif %}
+          </a>
+          <div class="cbody" style="flex:1;">
+            <div style="display:flex;justify-content:space-between;">
+              <div>
+                <a href="{{ url_for('profile', username=c.username) }}" class="cun">@{{ c.username }}</a>
+                <div class="ctxt">{{ c.text }}</div>
+              </div>
+              {% if c.user_id == me.id %}
+              <form method="POST" action="{{ url_for('delete_comment', pid=post.id, cid=c.id) }}">
+                <button style="background:none;border:none;color:var(--mute);font-size:.7rem;cursor:pointer;">✕</button>
+              </form>
+              {% endif %}
+            </div>
+            <button class="reply-btn" onclick="showReply('{{ post.id }}','{{ c.id }}','@{{ c.username }}')">Reply</button>
+            {% if c.get('replies') %}
+            <div class="replies">
+              {% for r in c.replies %}
+              <div class="cmt" style="border-bottom:none;padding:.35rem 0;">
+                <a href="{{ url_for('profile', username=r.username) }}">
+                  {% if r.avatar %}<img src="{{ r.avatar }}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt=""/>
+                  {% else %}<div style="width:22px;height:22px;border-radius:50%;background:var(--sub);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0;">{{ r.username[0].upper() }}</div>{% endif %}
+                </a>
+                <div class="cbody" style="flex:1;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <div>
+                      <a href="{{ url_for('profile', username=r.username) }}" class="cun" style="font-size:.78rem;">@{{ r.username }}</a>
+                      <div class="ctxt" style="font-size:.8rem;">{{ r.text }}</div>
+                    </div>
+                    {% if r.user_id == me.id %}
+                    <form method="POST" action="{{ url_for('delete_comment', pid=post.id, cid=r.id) }}">
+                      <button style="background:none;border:none;color:var(--mute);font-size:.68rem;cursor:pointer;">✕</button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Reply box -->
+      <div id="rb-{{ post.id }}" style="display:none;padding:.5rem 1rem;background:var(--sub);border-top:1px solid var(--bdr);">
+        <div id="rl-{{ post.id }}" style="font-size:.72rem;color:var(--mute);margin-bottom:.3rem;"></div>
+        <form method="POST" action="{{ url_for('comment_post', pid=post.id) }}" class="cform" style="padding:0;border:none;">
+          <input type="hidden" name="reply_to" id="rt-{{ post.id }}"/>
+          <input type="text" name="comment" class="cinp" placeholder="Write a reply..." required id="ri-{{ post.id }}"/>
+          <button type="submit" class="csub">Reply</button>
+        </form>
+        <button onclick="hideReply('{{ post.id }}')" style="background:none;border:none;color:var(--mute);font-size:.7rem;cursor:pointer;margin-top:.3rem;">Cancel</button>
+      </div>
+
+      <!-- Comment form -->
+      <form method="POST" action="{{ url_for('comment_post', pid=post.id) }}" class="cform">
+        <input type="hidden" name="reply_to" value=""/>
+        <input type="text" name="comment" class="cinp" placeholder="Add a comment..."/>
+        <button type="submit" class="csub">Post</button>
+      </form>
+    </div>
+
+  </div>
+  {% endfor %}
+
+{% else %}
+  <div class="empty">
+    <div class="empty-ico">🎨</div>
+    <h3>Your feed is empty</h3>
+    <p style="font-size:.85rem;margin:.4rem 0 1.25rem;">Follow some artists to see their work here!</p>
+    <a href="{{ url_for('discover') }}" class="btn btn-k btn-sm">Discover Artists</a>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleLike(btn){
+    fetch('/post/'+btn.dataset.pid+'/like',{method:'POST'})
+      .then(r=>r.json()).then(d=>{
+        btn.querySelector('svg').style.fill=d.liked?'var(--txt)':'none';
+        btn.querySelector('.lc').textContent=d.count;
+      });
+  }
+  function toggleRepost(btn){
+    fetch('/post/'+btn.dataset.pid+'/repost',{method:'POST'})
+      .then(r=>r.json()).then(d=>{
+        btn.style.opacity=d.reposted?'1':'.45';
+      });
+  }
+  function toggleBookmark(btn){
+    fetch('/post/'+btn.dataset.pid+'/bookmark',{method:'POST'})
+      .then(r=>r.json()).then(d=>{
+        btn.querySelector('svg').style.fill=d.bookmarked?'var(--txt)':'none';
+      });
+  }
+  function toggleComments(pid){
+    var el=document.getElementById('cmt-'+pid);
+    el.style.display=el.style.display==='none'?'block':'none';
+  }
+  function showReply(pid,cid,username){
+    var rb=document.getElementById('rb-'+pid);
+    document.getElementById('rt-'+pid).value=cid;
+    document.getElementById('rl-'+pid).textContent='Replying to '+username;
+    rb.style.display='block';
+    document.getElementById('ri-'+pid).focus();
+  }
+  function hideReply(pid){
+    document.getElementById('rb-'+pid).style.display='none';
+    document.getElementById('rt-'+pid).value='';
+  }
+  function votePoll(pid,oi){
+    var fd=new FormData(); fd.append('option',oi);
+    fetch('/polls/'+pid+'/vote',{method:'POST',body:fd})
+      .then(r=>r.json()).then(()=>location.reload());
+  }
+</script>
+{% endblock %}

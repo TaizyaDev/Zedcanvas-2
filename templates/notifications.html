@@ -1,0 +1,32 @@
+{% extends "base.html" %}{% block title %}Notifications — ZedCanvas{% endblock %}
+{% block content %}
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:1rem;">Notifications</div>
+{% if notifs %}
+  <div class="card" style="padding:0 1rem;">
+  {% for n in notifs %}
+  <div style="display:flex;align-items:center;gap:.75rem;padding:.8rem 0;border-bottom:1px solid var(--sub);{{ 'opacity:.6;' if n.read }}">
+    <a href="{{ url_for('profile', username=n.from_user.username) if n.from_user else '#' }}">
+      {% if n.from_user and n.from_user.avatar %}<img src="{{ n.from_user.avatar }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" alt=""/>
+      {% else %}<div style="width:40px;height:40px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;">{{ n.from_user.username[0].upper() if n.from_user and n.from_user.username else '?' }}</div>{% endif %}
+    </a>
+    <div style="flex:1;font-size:.85rem;line-height:1.5;">
+      {% if n.from_user %}<strong>@{{ n.from_user.username }}</strong>{% endif %}
+      {% if n.type=='like' %} liked your post ❤️
+      {% elif n.type=='comment' %} commented on your post 💬
+      {% elif n.type=='reply' %} replied to your comment 💬
+      {% elif n.type=='follow' %} started following you 👥
+      {% elif n.type=='repost' %} reposted your post 🔁
+      {% elif n.type=='mention' %} mentioned you in a post 📣
+      {% elif n.type=='message' %} sent you a message 💌
+      {% elif n.type=='badge' %} 🏅 You earned a new badge!
+      {% elif n.type=='won_challenge' %} 🏆 You won a challenge!
+      {% else %} sent you a notification{% endif %}
+    </div>
+    <div style="font-size:.7rem;color:var(--mute);white-space:nowrap;">{{ n.time_ago }}</div>
+  </div>
+  {% endfor %}
+  </div>
+{% else %}
+  <div class="empty"><div class="empty-ico">🔔</div><h3>No notifications yet</h3></div>
+{% endif %}
+{% endblock %}

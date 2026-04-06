@@ -1,0 +1,53 @@
+{% extends "base.html" %}{% block title %}Sell Artwork — ZedCanvas{% endblock %}
+{% block content %}
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:1rem;">List Artwork 🛒</div>
+{% if not my_posts %}
+<div style="background:var(--sub);border-radius:12px;padding:1.5rem;text-align:center;color:var(--mute);">
+  <div style="font-size:2rem;margin-bottom:.5rem;">🎨</div>
+  <div style="font-weight:600;margin-bottom:.3rem;">No posts to list</div>
+  <div style="font-size:.84rem;">Post some artwork first!</div>
+  <a href="{{ url_for('create_post') }}" class="btn btn-k btn-sm" style="margin-top:1rem;display:inline-flex;">Post Artwork</a>
+</div>
+{% else %}
+<div class="card" style="padding:1.5rem;">
+  <form method="POST" action="{{ url_for('sell_artwork') }}">
+    <div class="fg"><label class="fl">Select Post *</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;">
+        {% for post in my_posts %}
+        <label style="cursor:pointer;position:relative;">
+          <input type="radio" name="post_id" value="{{ post.id }}" style="display:none;" onchange="selectPost(this)"/>
+          <div id="po-{{ post.id }}" style="border:2.5px solid var(--bdr);border-radius:8px;overflow:hidden;">
+            {% if post.image %}<img src="{{ post.image }}" style="width:100%;aspect-ratio:1;object-fit:cover;" alt=""/>
+            {% else %}<div style="aspect-ratio:1;background:var(--sub);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🎨</div>{% endif %}
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Title *</label><input type="text" name="title" class="fi" placeholder='e.g. "Sunset Over Lusaka"' required/></div>
+    <div class="fg"><label class="fl">Description</label><textarea name="description" class="fi" rows="3" placeholder="Size, medium, condition, shipping..."></textarea></div>
+    <div class="fg"><label class="fl">Category</label>
+      <select name="category" class="fi"><option value="">— Select —</option>{% for c in cats %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></div>
+    <div class="fg"><label class="fl">Price *</label>
+      <div style="display:flex;gap:.5rem;">
+        <select name="currency" class="fi" style="max-width:95px;"><option value="ZMW">ZMW</option><option value="USD">USD</option><option value="ZAR">ZAR</option></select>
+        <input type="number" name="price" class="fi" placeholder="0" min="1" step="1" required/>
+      </div>
+    </div>
+    <div style="background:var(--sub);border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.8rem;color:var(--mute);">
+      ℹ️ Buyers contact you via Messages to arrange payment. ZedCanvas doesn't process payments.
+    </div>
+    <button type="submit" class="btn btn-k btn-f">List for Sale 🛒</button>
+    <a href="{{ url_for('marketplace') }}" class="btn btn-o btn-f" style="margin-top:.5rem;">Cancel</a>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+function selectPost(input){
+  document.querySelectorAll('[id^="po-"]').forEach(el=>el.style.borderColor='var(--bdr)');
+  document.getElementById('po-'+input.value).style.borderColor='var(--txt)';
+}
+</script>
+{% endblock %}

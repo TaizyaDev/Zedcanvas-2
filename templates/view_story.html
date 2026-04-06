@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>@{{ story.author.username }}'s Story</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#000;color:#fff;min-height:100vh;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;overflow:hidden;}
+    .prog{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.3);z-index:10;}
+    .prog-fill{height:100%;background:#fff;animation:prog 5s linear forwards;}
+    @keyframes prog{from{width:0}to{width:100%}}
+    .hdr{position:absolute;top:6px;left:0;right:0;padding:.7rem 1rem;z-index:10;display:flex;align-items:center;gap:.7rem;background:linear-gradient(to bottom,rgba(0,0,0,.5),transparent);}
+    .av{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;flex-shrink:0;}
+    .av-ph{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;flex-shrink:0;}
+    .close{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);border:none;cursor:pointer;color:#fff;font-size:1.1rem;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+    .story-img{width:100%;max-height:100vh;object-fit:contain;display:block;flex:1;}
+    .caption{position:absolute;bottom:80px;left:0;right:0;padding:1rem;text-align:center;background:linear-gradient(to top,rgba(0,0,0,.55),transparent);font-size:.92rem;}
+    .nav-z{position:absolute;top:0;bottom:0;width:42%;z-index:5;cursor:pointer;}
+    .bot{padding:.85rem 1rem;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:space-between;}
+    .views{display:flex;align-items:center;gap:.35rem;font-size:.82rem;opacity:.75;}
+    .del-btn{background:rgba(255,255,255,.12);border:none;cursor:pointer;color:#fff;font-size:.8rem;font-weight:600;padding:.4rem .8rem;border-radius:20px;}
+    .viewers-sheet{display:none;position:fixed;bottom:0;left:0;right:0;background:#111;border-radius:16px 16px 0 0;padding:1.25rem 1rem;z-index:50;max-height:55vh;overflow-y:auto;}
+    .viewers-sheet.open{display:block;animation:su .25s ease;}
+    @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .vrow{display:flex;align-items:center;gap:.65rem;padding:.6rem 0;border-bottom:1px solid #222;}
+    .vrow:last-child{border-bottom:none;}
+  </style>
+</head>
+<body>
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;">
+    <div class="prog"><div class="prog-fill" id="prog"></div></div>
+    <div class="hdr">
+      {% if story.author.avatar %}<img src="{{ story.author.avatar }}" class="av" alt=""/>
+      {% else %}<div class="av-ph">{{ story.author.username[0].upper() if story.author else '?' }}</div>{% endif %}
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:.88rem;">@{{ story.author.username if story.author else '' }}</div>
+        <div style="font-size:.7rem;opacity:.6;">{{ story.created[:16] }}</div>
+      </div>
+      <a href="{{ url_for('feed') }}" class="close">✕</a>
+    </div>
+    <img src="{{ story.image }}" class="story-img" alt=""/>
+    {% if story.caption %}<div class="caption">{{ story.caption }}</div>{% endif %}
+    {% if prev_id %}<div class="nav-z" style="left:0;" onclick="location='/stories/{{ prev_id }}'"></div>{% endif %}
+    {% if next_id %}<div class="nav-z" style="right:0;" onclick="location='/stories/{{ next_id }}'"></div>{% endif %}
+  </div>
+  <div class="bot">
+    <div class="views">
+      <svg style="width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      {{ story.views|length }} view{{ 's' if story.views|length!=1 }}
+      {% if story.user_id == me.id and viewers %}
+        <button onclick="document.getElementById('vs').classList.toggle('open')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:.75rem;cursor:pointer;">· See who</button>
+      {% endif %}
+    </div>
+    {% if story.user_id == me.id %}
+    <form method="POST" action="{{ url_for('delete_story', sid=story.id) }}" onsubmit="return confirm('Delete story?')">
+      <button type="submit" class="del-btn">Delete</button>
+    </form>
+    {% endif %}
+  </div>
+  {% if story.user_id == me.id and viewers %}
+  <div class="viewers-sheet" id="vs">
+    <div style="font-size:1rem;font-weight:700;margin-bottom:.85rem;">Viewed by ({{ viewers|length }})</div>
+    {% for v in viewers %}
+    <div class="vrow">
+      {% if v.avatar %}<img src="{{ v.avatar }}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" alt=""/>
+      {% else %}<div style="width:36px;height:36px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-weight:700;">{{ v.username[0].upper() if v.username else '?' }}</div>{% endif %}
+      <div><div style="font-weight:600;font-size:.85rem;">@{{ v.username }}</div><div style="font-size:.72rem;color:#888;">{{ v.full_name }}</div></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <script>
+    setTimeout(()=>{
+      {% if next_id %}location='/stories/{{ next_id }}';
+      {% else %}location='{{ url_for("feed") }}';{% endif %}
+    },5000);
+  </script>
+</body>
+</html>

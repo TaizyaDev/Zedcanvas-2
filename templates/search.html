@@ -1,0 +1,56 @@
+{% extends "base.html" %}{% block title %}Search — ZedCanvas{% endblock %}
+{% block content %}
+<form method="GET" action="{{ url_for('search') }}" style="display:flex;gap:.5rem;margin-bottom:1rem;">
+  <input type="text" name="q" class="fi" placeholder="Search artists, posts..." value="{{ q }}" style="flex:1;" autofocus/>
+  <select name="style" class="fi" style="max-width:130px;">
+    <option value="">All styles</option>
+    {% for s in styles %}<option value="{{ s }}" {{ 'selected' if style==s }}>{{ s }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="btn btn-k btn-sm">Go</button>
+</form>
+{% if q or style %}
+  {% if users %}
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.06em;margin-bottom:.6rem;">Artists ({{ users|length }})</div>
+    <div class="card" style="padding:0 1rem;margin-bottom:1rem;">
+    {% for u in users %}
+    <div class="urow">
+      <a href="{{ url_for('profile', username=u.username) }}">
+        {% if u.avatar %}<img src="{{ u.avatar }}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;" alt=""/>
+        {% else %}<div style="width:44px;height:44px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-weight:700;">{{ u.username[0].upper() }}</div>{% endif %}
+      </a>
+      <div class="uinfo">
+        <a href="{{ url_for('profile', username=u.username) }}" class="unm">@{{ u.username }}{% if u.verified %}<span class="badge">★</span>{% endif %}</a>
+        <div class="usub">{{ u.art_style or 'Artist' }} · {{ u.followers|length }} followers</div>
+      </div>
+      {% if u.id != me.id %}
+        <button class="btn btn-sm {{ 'btn-g' if u.id in me.following else 'btn-k' }}" data-uid="{{ u.id }}" onclick="toggleFollow(this)">
+          {{ 'Following' if u.id in me.following else 'Follow' }}
+        </button>
+      {% endif %}
+    </div>
+    {% endfor %}
+    </div>
+  {% endif %}
+  {% if posts %}
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.06em;margin-bottom:.6rem;">Posts ({{ posts|length }})</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;">
+      {% for p in posts %}{% if p.image %}<img src="{{ p.image }}" style="width:100%;aspect-ratio:1/1;object-fit:cover;" alt=""/>{% endif %}{% endfor %}
+    </div>
+  {% endif %}
+  {% if not users and not posts %}
+    <div class="empty"><div class="empty-ico">🔍</div><h3>No results found</h3></div>
+  {% endif %}
+{% else %}
+  <div class="empty"><div class="empty-ico">🔍</div><h3>Search ZedCanvas</h3><p style="font-size:.85rem;">Find artists, posts and art styles</p></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleFollow(btn){
+  fetch('/follow/'+btn.dataset.uid,{method:'POST'}).then(r=>r.json()).then(d=>{
+    btn.textContent=d.following?'Following':'Follow';
+    btn.className='btn btn-sm '+(d.following?'btn-g':'btn-k');
+  });
+}
+</script>
+{% endblock %}

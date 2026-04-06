@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile — ZedCanvas{% endblock %}
+{% block content %}
+
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:1.25rem;">Edit Profile</div>
+
+<div class="card" style="padding:1.5rem;">
+  <form method="POST" action="{{ url_for('settings') }}" enctype="multipart/form-data">
+
+    <!-- Avatar -->
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.25rem;">
+      <div id="av-wrap" onclick="document.getElementById('photo').click()"
+           style="width:80px;height:80px;border-radius:50%;overflow:hidden;cursor:pointer;
+                  border:3px solid var(--bdr);position:relative;">
+        {% if me.avatar %}
+          <img src="{{ me.avatar }}" id="av-img" style="width:100%;height:100%;object-fit:cover;" alt=""/>
+        {% else %}
+          <div id="av-img" style="width:100%;height:100%;background:var(--inv);color:var(--inv-t);
+                display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;">
+            {{ me.username[0].upper() }}
+          </div>
+        {% endif %}
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;
+                    align-items:center;justify-content:center;">
+          <span style="color:white;font-size:.7rem;font-weight:600;">Change</span>
+        </div>
+      </div>
+      <input type="file" id="photo" name="photo" accept="image/*" style="display:none"
+             onchange="previewAv(this)"/>
+    </div>
+
+    <div class="fg"><label class="fl">Full Name</label>
+      <input type="text" name="full_name" class="fi" value="{{ me.full_name }}" required/></div>
+
+    <div class="fg"><label class="fl">Bio</label>
+      <textarea name="bio" class="fi" rows="3">{{ me.bio or '' }}</textarea></div>
+
+    <div class="fg"><label class="fl">Art Style</label>
+      <select name="art_style" class="fi">
+        <option value="">— Select style —</option>
+        {% for s in styles %}<option value="{{ s }}" {{ 'selected' if me.art_style == s }}>{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+
+    <div class="fg"><label class="fl">City</label>
+      <select name="city" class="fi">
+        <option value="">— Select city —</option>
+        {% for c in cities %}<option value="{{ c }}" {{ 'selected' if me.city == c }}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-k btn-f">Save Changes</button>
+  </form>
+</div>
+
+<!-- Online status privacy -->
+<div class="card" style="padding:1.25rem;margin-top:.75rem;">
+  <div style="font-weight:700;font-size:.9rem;margin-bottom:.85rem;">🟢 Online Status Privacy</div>
+  <form method="POST" action="{{ url_for('settings') }}">
+    <input type="hidden" name="full_name" value="{{ me.full_name }}"/>
+    <input type="hidden" name="bio" value="{{ me.bio or '' }}"/>
+    <input type="hidden" name="art_style" value="{{ me.art_style or '' }}"/>
+    <input type="hidden" name="city" value="{{ me.city or '' }}"/>
+    {% for val, lbl in [('everyone','Everyone'),('followers','Followers only'),('nobody','Nobody')] %}
+    <label style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;
+                  border:1.5px solid {{ 'var(--txt)' if me.get('status_privacy','everyone') == val else 'var(--bdr)' }};
+                  border-radius:10px;margin-bottom:.4rem;cursor:pointer;">
+      <input type="radio" name="status_privacy" value="{{ val }}"
+             {{ 'checked' if me.get('status_privacy','everyone') == val }}
+             style="width:16px;height:16px;accent-color:var(--inv);"/>
+      <span style="font-size:.88rem;">{{ lbl }}</span>
+    </label>
+    {% endfor %}
+    <button type="submit" class="btn btn-k btn-f" style="margin-top:.5rem;">Save Status Setting</button>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function previewAv(input){
+    if(input.files&&input.files[0]){
+      var r=new FileReader();
+      r.onload=function(e){
+        var w=document.getElementById('av-wrap');
+        w.style.backgroundImage='url('+e.target.result+')';
+        w.style.backgroundSize='cover';
+        w.style.backgroundPosition='center';
+        document.getElementById('av-img').style.display='none';
+      };
+      r.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
+{% endblock %}

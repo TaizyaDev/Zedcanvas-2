@@ -1,0 +1,50 @@
+{% extends "base.html" %}{% block title %}@{{ them.username }} — ZedCanvas{% endblock %}
+{% block xstyle %}
+<style>
+  main{padding-bottom:120px!important;}
+  .chat-hdr{position:fixed;top:52px;left:0;right:0;z-index:250;background:var(--bg);border-bottom:1px solid var(--bdr);padding:.6rem 1rem;display:flex;align-items:center;gap:.75rem;max-width:600px;margin:0 auto;}
+  .chat-inp{position:fixed;bottom:60px;left:0;right:0;z-index:250;background:var(--bg);border-top:1px solid var(--bdr);padding:.65rem 1rem;display:flex;gap:.45rem;max-width:600px;margin:0 auto;}
+  .mb{max-width:72%;padding:.6rem .85rem;border-radius:18px;font-size:.88rem;line-height:1.5;margin-bottom:.15rem;}
+  .mb-me{background:var(--inv);color:var(--inv-t);border-bottom-right-radius:4px;margin-left:auto;}
+  .mb-them{background:var(--sub);border-bottom-left-radius:4px;}
+  .mt{font-size:.65rem;color:var(--mute);margin-bottom:.5rem;}
+  .mt-me{text-align:right;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="chat-hdr">
+  <a href="{{ url_for('messages') }}" style="font-size:1.2rem;color:var(--txt);">←</a>
+  {% if them.avatar %}<img src="{{ them.avatar }}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" alt=""/>
+  {% else %}<div style="width:36px;height:36px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-weight:700;">{{ them.username[0].upper() }}</div>{% endif %}
+  <div>
+    <div style="font-weight:700;font-size:.9rem;">@{{ them.username }}</div>
+    <div style="font-size:.72rem;color:{% if status == 'online' %}#2e7d32{% else %}var(--mute){% endif %};">
+      {% if status == 'online' %}● Online{% elif status %}Last seen {{ status }}{% else %}{{ them.art_style or 'Artist' }}{% endif %}
+    </div>
+  </div>
+</div>
+<div style="padding-top:54px;">
+  {% if thread %}
+    {% for msg in thread %}
+    <div style="display:flex;flex-direction:column;align-items:{{ 'flex-end' if msg.from_id == me.id else 'flex-start' }};">
+      <div style="display:flex;align-items:flex-end;gap:.25rem;justify-content:{{ 'flex-end' if msg.from_id == me.id else 'flex-start' }};">
+        <div class="mb {{ 'mb-me' if msg.from_id == me.id else 'mb-them' }}">{{ msg.text }}</div>
+        {% if msg.from_id == me.id %}
+        <form method="POST" action="{{ url_for('delete_message', uid=them.id, mid=msg.id) }}">
+          <button style="background:none;border:none;color:var(--mute);font-size:.68rem;cursor:pointer;padding:0 .2rem;align-self:center;">✕</button>
+        </form>
+        {% endif %}
+      </div>
+      <div class="mt {{ 'mt-me' if msg.from_id == me.id else '' }}">{{ msg.time_ago }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty" style="padding-top:3rem;"><div class="empty-ico">👋</div><h3>Start the conversation!</h3></div>
+  {% endif %}
+</div>
+<form method="POST" action="{{ url_for('conversation', uid=them.id) }}" class="chat-inp">
+  <input type="text" name="message" class="cinp" placeholder="Message @{{ them.username }}..." required autocomplete="off"/>
+  <button type="submit" class="csub">Send</button>
+</form>
+{% endblock %}
+{% block scripts %}<script>window.scrollTo(0,document.body.scrollHeight);</script>{% endblock %}

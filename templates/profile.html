@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}@{{ user.username }} — ZedCanvas{% endblock %}
+{% block content %}
+<!-- Header -->
+<div style="text-align:center;padding:1.5rem 1rem 1rem;">
+  {% if user.avatar %}
+    <img src="{{ user.avatar }}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;margin-bottom:.75rem;" alt=""/>
+  {% else %}
+    <div style="width:90px;height:90px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto .75rem;">{{ user.username[0].upper() }}</div>
+  {% endif %}
+  <div style="font-weight:700;font-size:1.1rem;margin-bottom:.2rem;">
+    {{ user.full_name }}
+    {% if user.verified %}<span class="badge">★</span>{% endif %}
+  </div>
+  <div style="font-size:.85rem;color:var(--mute);margin-bottom:.4rem;display:flex;align-items:center;justify-content:center;gap:.4rem;">
+    @{{ user.username }}
+    {% if status %}
+      {% if status == 'online' %}
+        <span style="display:inline-flex;align-items:center;gap:.25rem;background:#e8f5e9;color:#2e7d32;padding:.15rem .5rem;border-radius:20px;font-size:.68rem;font-weight:600;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#2e7d32;display:inline-block;"></span>Online
+        </span>
+      {% else %}
+        <span style="font-size:.72rem;color:var(--mute);">{{ status }}</span>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% if user.art_style %}
+    <div style="font-size:.8rem;color:var(--mute);margin-bottom:.4rem;">{{ user.art_style }}{% if user.city %} · {{ user.city }}{% endif %}</div>
+  {% endif %}
+  <!-- Badges -->
+  {% if user.badges %}
+  <div style="display:flex;gap:.35rem;justify-content:center;flex-wrap:wrap;margin-bottom:.6rem;">
+    {% for bid in user.badges %}{% if bid in badges %}
+      <span title="{{ badges[bid][1] }}" style="font-size:1.1rem;">{{ badges[bid][0] }}</span>
+    {% endif %}{% endfor %}
+  </div>
+  {% endif %}
+  {% if user.bio %}
+    <p style="font-size:.85rem;line-height:1.6;color:var(--mute);max-width:340px;margin:.5rem auto .75rem;">{{ user.bio }}</p>
+  {% endif %}
+  <!-- Stats -->
+  <div style="display:flex;justify-content:center;gap:2.5rem;margin-bottom:1rem;">
+    <div style="text-align:center;">
+      <div style="font-weight:700;font-size:1.1rem;">{{ posts|length }}</div>
+      <div style="font-size:.72rem;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;">Posts</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-weight:700;font-size:1.1rem;">{{ user.followers|length }}</div>
+      <div style="font-size:.72rem;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;">Followers</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-weight:700;font-size:1.1rem;">{{ user.following|length }}</div>
+      <div style="font-size:.72rem;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;">Following</div>
+    </div>
+  </div>
+  <!-- Action buttons -->
+  {% if user.id == me.id %}
+    <a href="{{ url_for('settings') }}" class="btn btn-o btn-sm">Edit Profile</a>
+  {% else %}
+    <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-sm {{ 'btn-g' if is_following else 'btn-k' }}"
+              id="follow-btn" data-uid="{{ user.id }}" onclick="toggleFollow(this)">
+        {{ 'Following' if is_following else 'Follow' }}
+      </button>
+      <a href="{{ url_for('conversation', uid=user.id) }}" class="btn btn-o btn-sm">Message</a>
+      {% if is_owner %}
+        <form method="POST" action="{{ url_for('toggle_verified', uid=user.id) }}">
+          <button type="submit" class="btn btn-g btn-sm">{{ '★ Unverify' if user.verified else '★ Verify' }}</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Posts grid -->
+{% if posts %}
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;border-radius:14px;overflow:hidden;">
+  {% for post in posts %}
+  {% if post.image %}
+  <div style="position:relative;aspect-ratio:1/1;">
+    {% if post.pinned %}<span style="position:absolute;top:4px;left:4px;font-size:.65rem;">📌</span>{% endif %}
+    <img src="{{ post.image }}" style="width:100%;height:100%;object-fit:cover;" alt=""/>
+    <div style="position:absolute;bottom:4px;right:4px;display:flex;align-items:center;gap:.2rem;background:rgba(0,0,0,.5);border-radius:8px;padding:.1rem .35rem;">
+      <svg class="ico ico-s" viewBox="0 0 24 24" style="stroke:white;width:12px;height:12px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span style="font-size:.65rem;color:white;font-weight:600;">{{ post.likes|length }}</span>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <div class="empty-ico">🎨</div>
+  <h3>No posts yet</h3>
+  {% if user.id == me.id %}
+    <a href="{{ url_for('create_post') }}" class="btn btn-k btn-sm" style="margin-top:1rem;">Share your first post</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleFollow(btn){
+    fetch('/follow/'+btn.dataset.uid,{method:'POST'})
+      .then(r=>r.json()).then(d=>{
+        btn.textContent=d.following?'Following':'Follow';
+        btn.className='btn btn-sm '+(d.following?'btn-g':'btn-k');
+      });
+  }
+</script>
+{% endblock %}

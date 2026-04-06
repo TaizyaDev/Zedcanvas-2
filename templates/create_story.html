@@ -1,0 +1,42 @@
+{% extends "base.html" %}{% block title %}Add Story — ZedCanvas{% endblock %}
+{% block content %}
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:.75rem;">Add Story 📷</div>
+<div style="background:var(--sub);border-radius:10px;padding:.75rem 1rem;margin-bottom:1.1rem;font-size:.82rem;color:var(--mute);display:flex;align-items:center;gap:.5rem;">
+  <span>⏱</span> Stories disappear after <strong>24 hours</strong>
+</div>
+<div class="card" style="padding:1.5rem;">
+  <form method="POST" action="{{ url_for('create_story') }}" enctype="multipart/form-data">
+    <div style="margin-bottom:1.1rem;">
+      <label class="fl">Image *</label>
+      <div id="upload-area" onclick="document.getElementById('image').click()"
+           style="border:2px dashed var(--bdr);border-radius:12px;padding:3rem 1rem;
+                  text-align:center;cursor:pointer;background:var(--sub);">
+        <div style="font-size:2.5rem;margin-bottom:.4rem;">📷</div>
+        <div style="font-weight:600;font-size:.88rem;">Tap to upload</div>
+        <div style="font-size:.72rem;color:var(--mute);margin-top:.2rem;">Max 8MB</div>
+      </div>
+      <img id="preview" src="" style="display:none;width:100%;border-radius:12px;margin-top:.65rem;max-height:380px;object-fit:cover;" alt=""/>
+      <input type="file" id="image" name="image" accept="image/*" required style="display:none" onchange="previewImg(this)"/>
+    </div>
+    <div class="fg"><label class="fl">Caption (optional)</label>
+      <input type="text" name="caption" class="fi" placeholder="Add a caption..." maxlength="200"/></div>
+    <button type="submit" class="btn btn-k btn-f">Post Story</button>
+    <a href="{{ url_for('feed') }}" class="btn btn-o btn-f" style="margin-top:.5rem;">Cancel</a>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function previewImg(input){
+  if(input.files&&input.files[0]){
+    var r=new FileReader();
+    r.onload=function(e){
+      document.getElementById('preview').src=e.target.result;
+      document.getElementById('preview').style.display='block';
+      document.getElementById('upload-area').style.display='none';
+    };
+    r.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

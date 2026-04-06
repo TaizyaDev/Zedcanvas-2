@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% block title %}Enter {{ challenge.title }}{% endblock %}
+{% block content %}
+<div style="margin-bottom:1rem;"><a href="{{ url_for('challenge_detail', cid=challenge.id) }}" style="font-size:.82rem;color:var(--mute);">← Back</a></div>
+<div style="background:var(--inv);color:var(--inv-t);border-radius:12px;padding:1rem;margin-bottom:1.1rem;display:flex;justify-content:space-between;align-items:center;">
+  <div><div style="font-size:.68rem;opacity:.55;text-transform:uppercase;letter-spacing:.08em;font-weight:700;">Entering</div><div style="font-family:'Playfair Display',serif;font-weight:700;">{{ challenge.title }}</div></div>
+  <div style="font-size:.78rem;opacity:.65;">{{ challenge.time_left }}</div>
+</div>
+<div class="card" style="padding:1.5rem;">
+  <form method="POST" action="{{ url_for('enter_challenge', cid=challenge.id) }}" enctype="multipart/form-data">
+    <div style="margin-bottom:1.1rem;">
+      <label class="fl">Your Artwork *</label>
+      <div id="upload-area" onclick="document.getElementById('image').click()"
+           style="border:2px dashed var(--bdr);border-radius:12px;padding:2.5rem 1rem;text-align:center;cursor:pointer;background:var(--sub);">
+        <div style="font-size:2.5rem;margin-bottom:.4rem;">🖼️</div>
+        <div style="font-weight:600;font-size:.88rem;">Tap to upload your entry</div>
+        <div style="font-size:.72rem;color:var(--mute);margin-top:.2rem;">JPG, PNG, WEBP — max 8MB</div>
+      </div>
+      <img id="preview" src="" style="display:none;width:100%;border-radius:12px;margin-top:.65rem;max-height:340px;object-fit:cover;" alt=""/>
+      <input type="file" id="image" name="image" accept="image/*" required style="display:none" onchange="previewImg(this)"/>
+    </div>
+    <div class="fg"><label class="fl">Caption / Artist Statement</label><textarea name="caption" class="fi" rows="3" placeholder="Tell us about your piece..."></textarea></div>
+    <button type="submit" class="btn btn-k btn-f">Submit Entry 🎭</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function previewImg(input){
+  if(input.files&&input.files[0]){
+    var r=new FileReader();
+    r.onload=function(e){
+      document.getElementById('preview').src=e.target.result;
+      document.getElementById('preview').style.display='block';
+      document.getElementById('upload-area').style.display='none';
+    };
+    r.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

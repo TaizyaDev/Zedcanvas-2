@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ZedCanvas — Zambia's Art Community</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0a;color:#f8f8f8;min-height:100vh;display:flex;flex-direction:column;}
+    .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem;text-align:center;}
+    .flag{font-size:3rem;margin-bottom:1rem;}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;letter-spacing:.08em;margin-bottom:.5rem;}
+    .tagline{font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;opacity:.65;margin-bottom:2.5rem;}
+    .btns{display:flex;flex-direction:column;gap:.75rem;width:100%;max-width:320px;}
+    .btn-w{display:block;padding:.9rem;border-radius:10px;font-weight:600;font-size:.95rem;text-align:center;text-decoration:none;}
+    .btn-main{background:#f8f8f8;color:#0a0a0a;}
+    .btn-sec{background:transparent;color:#f8f8f8;border:1.5px solid rgba(255,255,255,.2);}
+    .bottom{padding:1.5rem;text-align:center;font-size:.78rem;opacity:.35;}
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="flag">🇿🇲</div>
+    <div class="logo">ZedCanvas</div>
+    <div class="tagline">Zambia's art community</div>
+    <div class="btns">
+      <a href="{{ url_for('signup') }}" class="btn-w btn-main">Join ZedCanvas</a>
+      <a href="{{ url_for('login') }}"  class="btn-w btn-sec">Sign In</a>
+    </div>
+  </div>
+  <div class="bottom">© 2025 ZedCanvas · Made in Zambia 🇿🇲</div>
+</body>
+</html>

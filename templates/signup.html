@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Join ZedCanvas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#f8f8f8;--surf:#fff;--bdr:#e8e8e8;--txt:#0a0a0a;--mute:#888;--sub:#f2f2f2;--inv:#0a0a0a;--inv-t:#f8f8f8;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:2rem 1rem;}
+    .wrap{max-width:400px;margin:0 auto;}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.06em;text-align:center;margin-bottom:.25rem;}
+    .sub{text-align:center;font-size:.85rem;color:var(--mute);margin-bottom:1.5rem;}
+    .flash{padding:.65rem 1rem;border-radius:8px;font-size:.84rem;margin-bottom:.75rem;font-weight:500;}
+    .flash.error{background:#fee2e2;color:#b91c1c;}
+    .av-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:1.25rem;}
+    #av-preview{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--bdr);cursor:pointer;background:var(--sub);display:flex;align-items:center;justify-content:center;font-size:2rem;}
+    .av-hint{font-size:.72rem;color:var(--mute);margin-top:.4rem;}
+    .fg{margin-bottom:.85rem;}
+    .fl{display:block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:.3rem;}
+    .fi{width:100%;padding:.75rem 1rem;border:1.5px solid var(--bdr);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.9rem;background:var(--surf);color:var(--txt);-webkit-appearance:none;}
+    .fi:focus{outline:none;border-color:var(--txt);}
+    .btn{width:100%;padding:.82rem;border-radius:9px;border:none;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;background:var(--inv);color:var(--inv-t);margin-top:.5rem;}
+    .signin{text-align:center;font-size:.82rem;color:var(--mute);margin-top:1rem;}
+    .signin a{color:var(--txt);font-weight:600;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">ZedCanvas 🇿🇲</div>
+    <div class="sub">Join Zambia's art community</div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('signup') }}" enctype="multipart/form-data">
+      <div class="av-wrap">
+        <div id="av-preview" onclick="document.getElementById('photo').click()">📷</div>
+        <div class="av-hint">Tap to add profile photo</div>
+        <input type="file" id="photo" name="photo" accept="image/*" style="display:none" onchange="previewAv(this)"/>
+      </div>
+      <div class="fg"><label class="fl">Full Name *</label><input type="text" name="full_name" class="fi" value="{{ form.get('full_name','') }}" required/></div>
+      <div class="fg"><label class="fl">Username *</label><input type="text" name="username" class="fi" placeholder="letters, numbers, underscores" value="{{ form.get('username','') }}" required/></div>
+      <div class="fg"><label class="fl">Email *</label><input type="email" name="email" class="fi" value="{{ form.get('email','') }}" required/></div>
+      <div class="fg"><label class="fl">Password *</label><input type="password" name="password" class="fi" placeholder="min 6 characters" required/></div>
+      <div class="fg"><label class="fl">Art Style</label>
+        <select name="art_style" class="fi">
+          <option value="">— Select style —</option>
+          {% for s in styles %}<option value="{{ s }}" {{ 'selected' if form.get('art_style')==s }}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Bio</label><textarea name="bio" class="fi" rows="2" placeholder="Tell us about your art...">{{ form.get('bio','') }}</textarea></div>
+      <button type="submit" class="btn">Create Account</button>
+    </form>
+    <div class="signin">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></div>
+  </div>
+  <script>
+    function previewAv(input){
+      if(input.files&&input.files[0]){
+        var r=new FileReader();
+        r.onload=function(e){
+          var p=document.getElementById('av-preview');
+          p.style.backgroundImage='url('+e.target.result+')';
+          p.style.backgroundSize='cover';
+          p.style.backgroundPosition='center';
+          p.textContent='';
+        };
+        r.readAsDataURL(input.files[0]);
+      }
+    }
+  </script>
+</body>
+</html>

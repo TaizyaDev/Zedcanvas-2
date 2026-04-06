@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% block title %}Discover — ZedCanvas{% endblock %}
+{% block content %}
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:.75rem;">Discover 🌍</div>
+{% if suggested %}
+<div style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin-bottom:.5rem;">Suggested Artists</div>
+<div style="display:flex;gap:.75rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:1rem;">
+{% for u in suggested %}
+<a href="{{ url_for('profile', username=u.username) }}" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;flex-shrink:0;text-decoration:none;color:var(--txt);width:72px;">
+  {% if u.avatar %}<img src="{{ u.avatar }}" style="width:58px;height:58px;border-radius:50%;object-fit:cover;" alt=""/>
+  {% else %}<div style="width:58px;height:58px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-weight:700;">{{ u.username[0].upper() }}</div>{% endif %}
+  <span style="font-size:.65rem;font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:72px;">@{{ u.username }}</span>
+</a>
+{% endfor %}
+</div>
+{% endif %}
+<!-- Category pills -->
+<div style="display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none;margin-bottom:.75rem;">
+  <a href="{{ url_for('discover') }}" style="flex-shrink:0;padding:.3rem .8rem;border-radius:20px;font-size:.78rem;font-weight:500;border:1.5px solid {{ 'var(--txt)' if not active_cat else 'var(--bdr)' }};background:{{ 'var(--inv)' if not active_cat else 'var(--surf)' }};color:{{ 'var(--inv-t)' if not active_cat else 'var(--mute)' }};text-decoration:none;">All</a>
+  {% for cat in cats %}
+  <a href="{{ url_for('discover', cat=cat) }}" style="flex-shrink:0;padding:.3rem .8rem;border-radius:20px;font-size:.78rem;font-weight:500;border:1.5px solid {{ 'var(--txt)' if active_cat==cat else 'var(--bdr)' }};background:{{ 'var(--inv)' if active_cat==cat else 'var(--surf)' }};color:{{ 'var(--inv-t)' if active_cat==cat else 'var(--mute)' }};text-decoration:none;">{{ cat }}</a>
+  {% endfor %}
+</div>
+{% if posts %}
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;border-radius:14px;overflow:hidden;">
+  {% for p in posts %}
+  <a href="{{ url_for('profile', username=p.author.username) if p.author else '#' }}" style="display:block;position:relative;aspect-ratio:1/1;">
+    <img src="{{ p.image }}" style="width:100%;height:100%;object-fit:cover;" alt=""/>
+    <div style="position:absolute;bottom:3px;right:3px;display:flex;align-items:center;gap:.15rem;background:rgba(0,0,0,.5);border-radius:6px;padding:.08rem .3rem;">
+      <svg style="width:10px;height:10px;stroke:white;fill:none;stroke-width:2;" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span style="font-size:.62rem;color:white;font-weight:600;">{{ p.likes|length }}</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><div class="empty-ico">🎨</div><h3>Nothing here yet</h3></div>
+{% endif %}
+{% endblock %}

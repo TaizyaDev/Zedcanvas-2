@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}New Challenge — ZedCanvas{% endblock %}
+{% block content %}
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:1rem;">New Challenge 🎭</div>
+<div class="card" style="padding:1.5rem;">
+  <form method="POST" action="{{ url_for('create_challenge') }}">
+    <div class="fg"><label class="fl">Title *</label><input type="text" name="title" class="fi" placeholder='e.g. "Paint Zambia"' required/></div>
+    <div class="fg"><label class="fl">Description</label><textarea name="description" class="fi" rows="3" placeholder="Theme, rules, what you're looking for..."></textarea></div>
+    <div class="fg"><label class="fl">Category</label>
+      <select name="category" class="fi"><option value="">— Any style —</option>
+        {% for c in cats %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select></div>
+    <div class="fg"><label class="fl">Prize / Recognition</label><input type="text" name="prize" class="fi" placeholder='e.g. "Featured + Trophy badge"'/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;">
+      <div class="fg"><label class="fl">Start Date *</label><input type="date" name="start_date" class="fi" required/></div>
+      <div class="fg"><label class="fl">End Date *</label><input type="date" name="end_date" class="fi" required/></div>
+    </div>
+    <button type="submit" class="btn btn-k btn-f">Launch Challenge 🚀</button>
+    <a href="{{ url_for('challenges') }}" class="btn btn-o btn-f" style="margin-top:.5rem;">Cancel</a>
+  </form>
+</div>
+{% endblock %}

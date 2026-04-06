@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}Messages — ZedCanvas{% endblock %}
+{% block content %}
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:1rem;">Messages</div>
+{% if convos %}
+  <div class="card" style="padding:0 1rem;">
+    {% for c in convos %}
+    <a href="{{ url_for('conversation', uid=c.other.id) }}" style="display:flex;align-items:center;gap:.75rem;padding:.85rem 0;border-bottom:1px solid var(--sub);text-decoration:none;color:var(--txt);">
+      {% if c.other.avatar %}<img src="{{ c.other.avatar }}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt=""/>
+      {% else %}<div style="width:46px;height:46px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">{{ c.other.username[0].upper() if c.other.username else '?' }}</div>{% endif %}
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.15rem;">
+          <span style="font-weight:600;font-size:.88rem;">@{{ c.other.username }}</span>
+          {% if c.status == 'online' %}<span style="width:7px;height:7px;border-radius:50%;background:#2e7d32;flex-shrink:0;"></span>
+          {% elif c.status %}<span style="font-size:.7rem;color:var(--mute);">{{ c.status }}</span>{% endif %}
+          {% if c.unread > 0 %}<span style="background:var(--inv);color:var(--inv-t);border-radius:20px;font-size:.65rem;font-weight:700;padding:.1rem .45rem;margin-left:auto;">{{ c.unread }}</span>{% endif %}
+        </div>
+        <div style="font-size:.8rem;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.last.text[:60] }}</div>
+      </div>
+      <div style="font-size:.7rem;color:var(--mute);white-space:nowrap;flex-shrink:0;">{{ c.time_ago }}</div>
+    </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty"><div class="empty-ico">💬</div><h3>No messages yet</h3><p style="font-size:.85rem;margin:.4rem 0 1.25rem;">Visit someone's profile and tap Message!</p></div>
+{% endif %}
+{% endblock %}

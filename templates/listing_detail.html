@@ -1,0 +1,47 @@
+{% extends "base.html" %}{% block title %}{{ listing.title }} — ZedCanvas{% endblock %}
+{% block content %}
+<div style="margin-bottom:1rem;"><a href="{{ url_for('marketplace') }}" style="font-size:.82rem;color:var(--mute);">← Marketplace</a></div>
+{% if listing.post.image %}<img src="{{ listing.post.image }}" style="width:100%;border-radius:14px;max-height:400px;object-fit:cover;margin-bottom:1rem;" alt=""/>{% endif %}
+<div class="card" style="padding:1.25rem;margin-bottom:.75rem;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.65rem;">
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;margin-bottom:.3rem;">{{ listing.title }}</div>
+      {% if listing.category %}<span style="background:var(--sub);color:var(--mute);padding:.15rem .55rem;border-radius:20px;font-size:.7rem;font-weight:600;">{{ listing.category }}</span>{% endif %}
+    </div>
+    {% if listing.status=='sold' %}<span style="background:var(--sub);color:var(--mute);padding:.3rem .8rem;border-radius:20px;font-size:.76rem;font-weight:700;">SOLD</span>{% endif %}
+  </div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.03em;margin-bottom:.65rem;">{{ listing.currency }} {{ "%.0f"|format(listing.price) }}</div>
+  {% if listing.description %}<p style="font-size:.85rem;line-height:1.7;color:var(--mute);margin-bottom:.65rem;">{{ listing.description }}</p>{% endif %}
+  <div style="font-size:.72rem;color:var(--mute);">Listed {{ listing.created[:10] }}</div>
+</div>
+<div class="card" style="padding:1rem;margin-bottom:.75rem;">
+  <div style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:.65rem;">Seller</div>
+  <div style="display:flex;align-items:center;gap:.75rem;">
+    <a href="{{ url_for('profile', username=listing.seller.username) if listing.seller else '#' }}">
+      {% if listing.seller and listing.seller.avatar %}<img src="{{ listing.seller.avatar }}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;" alt=""/>
+      {% else %}<div style="width:46px;height:46px;border-radius:50%;background:var(--inv);color:var(--inv-t);display:flex;align-items:center;justify-content:center;font-weight:700;">{{ listing.seller.username[0].upper() if listing.seller and listing.seller.username else '?' }}</div>{% endif %}
+    </a>
+    <div>
+      <a href="{{ url_for('profile', username=listing.seller.username) if listing.seller else '#' }}" style="font-weight:700;font-size:.88rem;">@{{ listing.seller.username if listing.seller else 'Unknown' }}</a>
+      <div style="font-size:.76rem;color:var(--mute);">{{ listing.seller.art_style or 'Artist' if listing.seller else '' }}</div>
+    </div>
+  </div>
+</div>
+{% if listing.user_id == me.id %}
+<div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+  {% if listing.status=='available' %}
+  <form method="POST" action="{{ url_for('mark_sold', lid=listing.id) }}" style="flex:1;">
+    <button type="submit" class="btn btn-k btn-f">✓ Mark as Sold</button>
+  </form>
+  {% endif %}
+  <form method="POST" action="{{ url_for('delete_listing', lid=listing.id) }}" onsubmit="return confirm('Remove listing?')" style="flex:1;">
+    <button type="submit" class="btn btn-o btn-f">Remove</button>
+  </form>
+</div>
+{% elif listing.status=='available' %}
+<a href="{{ url_for('conversation', uid=listing.user_id) }}" class="btn btn-k btn-f">💬 Message Seller to Buy</a>
+<p style="text-align:center;font-size:.74rem;color:var(--mute);margin-top:.65rem;">Contact seller directly to arrange payment and collection</p>
+{% else %}
+<div class="btn btn-g btn-f" style="cursor:default;text-align:center;">This artwork has been sold</div>
+{% endif %}
+{% endblock %}

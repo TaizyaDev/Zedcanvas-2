@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% block title %}Create Poll — ZedCanvas{% endblock %}
+{% block content %}
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:1rem;">Create Poll 🗳️</div>
+<div class="card" style="padding:1.5rem;">
+  <form method="POST" action="{{ url_for('create_poll') }}">
+    <div class="fg"><label class="fl">Question *</label><input type="text" name="question" class="fi" placeholder="Ask the community..." required/></div>
+    <div class="fg"><label class="fl">Options (min 2) *</label>
+      <div style="display:flex;flex-direction:column;gap:.5rem;">
+        <input type="text" name="option1" class="fi" placeholder="Option 1" required/>
+        <input type="text" name="option2" class="fi" placeholder="Option 2" required/>
+        <input type="text" name="option3" class="fi" placeholder="Option 3 (optional)"/>
+        <input type="text" name="option4" class="fi" placeholder="Option 4 (optional)"/>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Duration</label>
+      <select name="duration" class="fi">
+        <option value="1">1 hour</option>
+        <option value="6">6 hours</option>
+        <option value="12">12 hours</option>
+        <option value="24" selected>24 hours</option>
+        <option value="48">2 days</option>
+        <option value="168">1 week</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-k btn-f">Post Poll 🗳️</button>
+    <a href="{{ url_for('feed') }}" class="btn btn-o btn-f" style="margin-top:.5rem;">Cancel</a>
+  </form>
+</div>
+{% endblock %}
